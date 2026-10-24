@@ -50,7 +50,7 @@ Nếu Windows hỏi tường lửa, người vận hành cho phép Python trên 
 
 Chỉ báo đạt khi tất cả bài kiểm thử kết thúc và hiện `OK`. Nếu bị treo, Ctrl+C và gửi tên bài đang chạy cùng log vào Issue.
 
-Kiểm tra khi chuẩn bị đưa lên kho ngày 24/10/2026: mã Python được kiểm tra cú pháp; bộ kiểm thử thực tế bị dừng vì bài `test_fragmentation_and_coalescing` không kết thúc trong môi trường kiểm tra. Chưa xác định nguyên nhân; không coi bộ kiểm thử đã đạt. Cần chạy lại trên máy nhóm, kiểm tra giao diện và demo LAN trước khi nghiệm thu. Docker chưa được kiểm chứng trong đợt bàn giao này.
+Kiểm tra khi chuẩn bị đưa lên kho ngày 24/10/2026: toàn bộ mã Python qua kiểm tra cú pháp; 14/14 bài kiểm thử TCP/UDP và luật cờ đạt (OK, 3,385 giây) khi chạy ngoài sandbox. Lần chạy trong sandbox bị treo; không tái hiện khi được phép dùng socket cục bộ. Cần kiểm tra giao diện và demo LAN trên các máy thật trước khi nghiệm thu. Docker chưa được kiểm chứng trong đợt bàn giao này.
 
 ## 6. Lỗi thường gặp
 
@@ -60,3 +60,4 @@ Kiểm tra khi chuẩn bị đưa lên kho ngày 24/10/2026: mã Python được
 - Không kết nối được: kiểm tra server đang chạy, IP, cổng và mạng riêng; thử IP thủ công.
 
 `data/chess.db` và `.local/client.json` được tạo khi chạy. Không đưa chúng lên GitHub. Không sửa thư viện trong `vendor/chess` nếu chưa thống nhất với nhóm; giữ nguyên thông tin giấy phép.
+

@@ -9,7 +9,7 @@ Phân công theo cấu trúc mã nguồn hiện có; mỗi người đọc hiể
 | Huy Huỳnh | chessnet/server.py | Phòng chơi, ghép trận, xử lý lượt đi, đồng hồ, hòa/đầu hàng, nhiều phòng. Bàn giao demo 2 phòng độc lập, server từ chối nước đi sai lượt và đồng bộ kết quả. | feature/server |
 | Lê Công Thịnh | discover(), NetworkClient trong chessnet/client.py; chessnet/protocol.py | TCP framing, UDP, tìm LAN, heartbeat, tự kết nối lại. Bàn giao kiểm tra phân mảnh/dính gói, 2 máy kết nối và khôi phục đúng FEN/vai trò. | feature/network |
 | Quang Linh | chessnet/storage.py | Đăng ký/đăng nhập, băm mật khẩu, SQLite, ELO, lịch sử và PGN. Bàn giao mô tả bảng dữ liệu, kiểm tra tài khoản trùng/sai mật khẩu, kết quả lưu còn sau restart. | feature/storage |
-| Trần Phúc Hậu | evaluate(), choose_move(), PracticeBot trong chessnet/client.py; tests/ | Bot và kiểm thử tích hợp. Phối hợp Công Thịnh điều tra bài framing đang treo; kiểm tra nước đặc biệt, reconnect, UDP và lịch sử. Bàn giao log test, bảng kết quả, bot chỉ đi nước hợp lệ. | feature/bot-tests |
+| Trần Phúc Hậu | evaluate(), choose_move(), PracticeBot trong chessnet/client.py; tests/ | Bot và kiểm thử tích hợp. Duy trì 14 bài kiểm thử hiện đã đạt ngoài sandbox; kiểm tra nước đặc biệt, reconnect, UDP và lịch sử. Bàn giao log test, bảng kết quả, bot chỉ đi nước hợp lệ. | feature/bot-tests |
 
 ## Tránh sửa trùng
 
@@ -36,3 +36,4 @@ Trưởng nhóm vận hành server riêng. Đức Huy và Huy Huỳnh chơi mộ
 - Có cách kiểm tra và kết quả thực tế; không ghi đạt nếu chưa chạy.
 - Không đưa dữ liệu cá nhân, token, môi trường ảo hoặc cache lên kho.
 - Được ít nhất một thành viên xem lại trước khi trưởng nhóm gộp theo quy ước nhóm. Đây chưa phải quy tắc bảo vệ nhánh được GitHub cưỡng chế.
+
