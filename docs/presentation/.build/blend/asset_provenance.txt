@@ -1,0 +1,4 @@
+Tool: built-in ImageGen
+Selected asset: ../brand/uth-mark-transparent.png
+Edit prompt: Extract ONLY the large teal serif UTH letters from the supplied university header. Preserve letterforms, spacing, teal and gold edge. Remove all background and other lettering. Transparent tightly framed clean logo, no shadow or added marks.
+Original header bytes: 57656

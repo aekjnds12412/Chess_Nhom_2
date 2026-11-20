@@ -46,7 +46,6 @@ class Room:
     title: str
     control: str
     private: bool = False
-    rated: bool = True
     players: list = field(default_factory=list)
     watchers: set = field(default_factory=set)
     board: object = field(default_factory=chess.Board)
@@ -129,17 +128,26 @@ class GameServer:
                     if session.sock:
                         raise ValueError('Phiên đang kết nối ở nơi khác.')
                 elif hello['type'] == 'LOGIN':
-                    name, _ = self.store.authenticate(hello.get('name'), hello.get('password'), hello.get('register') is True)
-                    if any(s.name.casefold() == name.casefold() and (s.sock or (s.disconnected is not None and time.monotonic()-s.disconnected <= self.reconnect_seconds)) for s in self.sessions.values()):
-                        raise ValueError('Tài khoản có phiên đang mở. Khôi phục phiên hoặc chờ 60 giây.')
-                    session = Session(secrets.token_urlsafe(32), name)
-                    self.sessions[session.token] = session
+                    name = self.store.authenticate(hello.get('name'), hello.get('password'), hello.get('register') is True)
+                    existing = next((s for s in self.sessions.values() if s.name.casefold() == name.casefold()), None)
+                    if existing:
+                        if existing.sock:
+                            raise ValueError('Tài khoản đang đăng nhập ở một máy khác.')
+                        if existing.disconnected is not None and time.monotonic() - existing.disconnected <= self.reconnect_seconds:
+                            session = existing
+                        else:
+                            self.sessions.pop(existing.token, None)
+                            session = Session(secrets.token_urlsafe(32), name)
+                            self.sessions[session.token] = session
+                    else:
+                        session = Session(secrets.token_urlsafe(32), name)
+                        self.sessions[session.token] = session
                 else:
                     raise ValueError('Cần đăng nhập trước.')
                 session.sock, session.ip = sock, addr[0]
                 session.disconnected, session.seen = None, time.monotonic()
                 session.send({'type':'WELCOME', 'token':session.token, 'name':session.name,
-                              'elo':self.store.rating(session.name), 'udp_port':self.udp_port})
+                              'udp_port':self.udp_port})
                 self.lobby()
                 if session.room and session.room in self.rooms:
                     self.broadcast_room(self.rooms[session.room])
@@ -168,7 +176,7 @@ class GameServer:
                     session.disconnected = time.monotonic()
                     session.udp = None
                     self.queue.pop(session.token, None)
-                    if session.room in self.rooms:
+                    if session.room and session.room in self.rooms:
                         self.broadcast_room(self.rooms[session.room])
                     self.lobby()
             sock.close()
@@ -191,7 +199,7 @@ class GameServer:
         players = []
         for token in r.players:
             s = self.sessions[token]
-            players.append({'name':s.name,'elo':self.store.rating(s.name),'connected':s.sock is not None})
+            players.append({'name':s.name,'connected':s.sock is not None})
         return {'type':'STATE','id':r.id,'title':r.title,'control':r.control,'private':r.private,
                 'players':players,'player_tokens':[], 'watchers':len(r.watchers),
                 'fen':r.board.fen(),'legal':[m.uci() for m in r.board.legal_moves] if r.status=='playing' else [],
@@ -225,7 +233,7 @@ class GameServer:
         game = chess.pgn.Game.from_board(r.board)
         names = [self.sessions[t].name for t in r.players]
         game.headers.update({'White':names[0],'Black':names[1],'Result':result,'Event':'Pixel Chess','TimeControl':str(CONTROLS[r.control][0])+'+'+str(CONTROLS[r.control][1])})
-        self.store.finish(*names, result, reason, str(game), r.rated)
+        self.store.finish(*names, result, reason, str(game))
         self.broadcast_room(r)
         self.lobby()
 
@@ -253,8 +261,7 @@ class GameServer:
         if msg.get('control', '5+0') not in CONTROLS:
             raise ValueError('Thời gian không hợp lệ.')
         title = str(msg.get('title', 'Bàn của '+s.name)).strip()[:40] or 'Bàn cờ'
-        r = Room(secrets.token_hex(3).upper(), title, msg.get('control','5+0'), msg.get('private') is True,
-                 rated=not title.startswith('Luyện tập · '))
+        r = Room(secrets.token_hex(3).upper(), title, msg.get('control','5+0'), msg.get('private') is True)
         r.players.append(s.token)
         r.clocks = [CONTROLS[r.control][0]] * 2
         self.rooms[r.id] = r
@@ -284,7 +291,7 @@ class GameServer:
         elif kind == 'LOBBY':
             self.lobby(s)
         elif kind == 'HISTORY':
-            s.send({'type':'HISTORY','games':self.store.history(s.name),'elo':self.store.rating(s.name)})
+            s.send({'type':'HISTORY','games':self.store.history(s.name)})
         elif kind == 'PGN':
             s.send({'type':'PGN','pgn':self.store.pgn(int(msg.get('id',0)),s.name)})
         elif kind == 'CREATE':
@@ -428,7 +435,6 @@ class GameServer:
                         r=self.rooms.get(s.room)
                         if r and r.status=='playing' and token in r.players:
                             self.finish(r,'0-1' if r.players.index(token)==0 else '1-0','Mất kết nối quá 60 giây')
-                        # Retain identities referenced by completed rooms until their cleanup.
                         if r and r.status=='waiting' and token in r.players:
                             self.rooms.pop(r.id,None)
                         if r:

@@ -69,7 +69,6 @@ class ChessApp:
         self.drag=None
         self.flipped=False
         self.name=''
-        self.elo=1200
         self.rooms=[]
         self.clock_base=[300,300]
         self.clock_at=time.monotonic()
@@ -200,7 +199,7 @@ class ChessApp:
         button(row,'Vào đấu',self.join_selected,small=True).pack(side='left',expand=True,fill='x',padx=(0,5))
         button(row,'Vào xem',lambda:self.join_selected(True),small=True).pack(side='left',expand=True,fill='x')
         button(self.left,'Nhập mã phòng',self.code_dialog,small=True).pack(fill='x',padx=14,pady=(0,6))
-        button(self.left,'Lịch sử & ELO',lambda:self.send('HISTORY'),small=True).pack(fill='x',padx=14,pady=(0,6))
+        button(self.left,'Lịch sử ván đấu',lambda:self.send('HISTORY'),small=True).pack(fill='x',padx=14,pady=(0,6))
         button(self.left,'Rời phòng',self.leave,small=True).pack(fill='x',padx=14,pady=(0,6))
         bottom=tk.Frame(self.left,bg=CARD)
         bottom.pack(fill='x',padx=14,pady=(8,14))
@@ -284,20 +283,24 @@ class ChessApp:
         label(wrap,title,18,bold=True).pack(anchor='w',pady=(0,14))
         return win,wrap
 
-    def login_dialog(self):
+    def login_dialog(self, note=None):
         if self.client and self.client.connected:
             win,wrap=self.new_modal('Kết nối của bạn')
-            label(wrap,f'{self.name} · {self.elo} ELO',13,GREEN).pack(anchor='w',pady=10)
-            label(wrap,f'Server: {self.host}:{self.port}\nKhôi phục phiên trong 60 giây.\nĐồng hồ tiếp tục chạy khi mất mạng.',11,MUTED,justify='left').pack(anchor='w',pady=12)
-            button(wrap,'Thử ngắt mạng & kết nối lại',lambda:(self.client.disconnect_transport(),win.destroy()),primary=True).pack(fill='x',pady=10)
-            button(wrap,'Đăng xuất',lambda:(self.logout(),win.destroy())).pack(fill='x')
+            label(wrap,self.name,13,GREEN).pack(anchor='w',pady=10)
+            label(wrap,f'Server: {self.host}:{self.port}\nTrạng thái: Đang kết nối trực tiếp.',11,MUTED,justify='left').pack(anchor='w',pady=12)
+            button(wrap,'Rời ván & Đăng xuất',lambda:(self.logout(),win.destroy()),primary=True).pack(fill='x')
             return
+        if self.modal and self.modal.winfo_exists():
+            try:
+                self.modal.destroy()
+            except Exception:
+                pass
         win,wrap=self.new_modal('Kết nối bàn cờ',490)
         win.geometry('490x700')
         label(wrap,'Đăng nhập hoặc tạo tài khoản trên server.',10,MUTED).pack(anchor='w',pady=(0,12))
         host_var=tk.StringVar(value=f'{self.host}:{self.port}')
         name_var=tk.StringVar(value=self.prefs.get('name',''))
-        pw_var=tk.StringVar()
+        pw_var=tk.StringVar(value=getattr(self,'_saved_password',''))
         label(wrap,'Địa chỉ server',10,MUTED).pack(anchor='w')
         entry(wrap,host_var).pack(fill='x',ipady=10,pady=(5,8))
         row=tk.Frame(wrap,bg=PANEL)
@@ -317,7 +320,7 @@ class ChessApp:
         label(wrap,'Mật khẩu',10,MUTED).pack(anchor='w')
         password=entry(wrap,pw_var,show='●')
         password.pack(fill='x',ipady=10,pady=(5,12))
-        self.auth_note=label(wrap,'',10,GOLD,wraplength=430,justify='left')
+        self.auth_note=label(wrap,note or '',10,GOLD,wraplength=430,justify='left')
         self.auth_note.pack(anchor='w',pady=(0,8))
         def login(register=False,resume=False):
             try:
@@ -333,6 +336,7 @@ class ChessApp:
                 self.auth_note.config(text='Nhập tên từ 2 ký tự và mật khẩu từ 4 ký tự.')
                 return
             self.host,self.port=host,port
+            self._saved_password=pw_var.get()
             if self.client:
                 self.client.close()
             self.client=NetworkClient(self.events.put)
@@ -354,11 +358,13 @@ class ChessApp:
             threading.Thread(target=start_safe,daemon=True).start()
         button(wrap,'Đăng nhập',login,primary=True).pack(fill='x',pady=(0,8))
         button(wrap,'Tạo tài khoản mới',lambda:login(True)).pack(fill='x',pady=(0,8))
-        if self.prefs.get('token'):
-            button(wrap,'Khôi phục phiên trước',lambda:login(resume=True),small=True).pack(fill='x')
         button(wrap,'Chơi thử ngay với máy',self.play_guest,small=True).pack(fill='x',pady=(8,0))
         password.bind('<Return>',lambda e:login())
         name_entry.focus_set()
+
+    def simulate_disconnect(self):
+        if self.client:
+            self.client.disconnect_transport()
 
     def play_guest(self):
         if self.modal and self.modal.winfo_exists():
@@ -469,7 +475,13 @@ class ChessApp:
             self.bot.close()
             self.bot=None
         if self.client:
-            self.client.send('LEAVE')
+            if self.state and self.state.get('status')=='playing' and self.state.get('role',-1)>=0:
+                self.client.disconnect_transport()
+                return
+            try:
+                self.client.send('LEAVE')
+            except Exception:
+                pass
             self.client.close()
             self.client=None
         self.prefs.pop('token',None)
@@ -479,6 +491,7 @@ class ChessApp:
         self.connection.config(text='●  Chưa kết nối',fg=MUTED)
         self.profile.config(text='Kết nối server')
         self.room_list.delete(0,'end')
+        self.root.after(100,self.login_dialog)
 
     def save_prefs(self):
         self.prefs_path.parent.mkdir(parents=True,exist_ok=True)
@@ -659,8 +672,8 @@ class ChessApp:
                 p=players[side]
                 you=' · Bạn' if state['role']==side else ''
                 card['name'].config(text=('PixelBot' if p['name'].startswith('PixelBot_') else p['name'])+you)
-                status='Đã kết nối' if p['connected'] else 'Mất mạng · chờ 60 giây'
-                card['detail'].config(text=f'{color} · {p["elo"]} ELO · {status}')
+                status='Đã kết nối' if p['connected'] else 'Mất kết nối (Chờ 60s)'
+                card['detail'].config(text=f'{color} · {status}')
             else:
                 card['name'].config(text='Đang chờ đối thủ' if side==1 else self.name or 'Bạn')
                 card['detail'].config(text=color+' · '+('Mời bạn bè bằng mã phòng' if state else 'Sẵn sàng cho ván mới'))
@@ -769,11 +782,9 @@ class ChessApp:
             self.toast('Đã lưu ván đấu: '+Path(path).name)
 
     def history_dialog(self,event):
-        self.elo=event['elo']
-        self.profile.config(text=f'{self.name} · {self.elo}')
         win,wrap=self.new_modal('Lịch sử ván đấu',650)
         win.geometry('650x500')
-        label(wrap,f'{self.name} · {self.elo} ELO  |  30 ván gần nhất',11,GREEN).pack(anchor='w',pady=(0,12))
+        label(wrap,f'{self.name}  |  30 ván gần nhất',11,GREEN).pack(anchor='w',pady=(0,12))
         tree=ttk.Treeview(wrap,columns=('players','result','reason'),show='headings',height=10)
         for key,title,width in [('players','TRẮNG / ĐEN',220),('result','KẾT QUẢ',80),('reason','KẾT THÚC',230)]:
             tree.heading(key,text=title)
@@ -797,8 +808,8 @@ class ChessApp:
                 event=self.events.get_nowait()
                 kind=event['type']
                 if kind=='WELCOME':
-                    self.name,self.elo=event['name'],event['elo']
-                    self.profile.config(text=f'{self.name} · {self.elo}')
+                    self.name=event['name']
+                    self.profile.config(text=self.name)
                     self.connection.config(text='●  Đã kết nối',fg=GREEN)
                     self.prefs.update(host=self.host,port=self.port,name=self.name,token=event['token'])
                     self.save_prefs()
@@ -810,16 +821,28 @@ class ChessApp:
                         self.guest_pending=False
                         self.play_bot()
                 elif kind=='AUTH_ERROR':
-                    if self.modal and self.modal.winfo_exists() and hasattr(self,'auth_note') and self.auth_note.winfo_exists():
-                        self.auth_note.config(text=event['message'])
-                    self.connection.config(text='●  Chưa kết nối',fg=GOLD)
-                    self.toast(event['message'])
+                    msg = event.get('message','Đã ngắt kết nối với máy chủ.')
+                    was_playing = bool(self.state and self.state.get('status')=='playing')
+                    if self.client:
+                        try:
+                            self.client.close()
+                        except Exception:
+                            pass
+                        self.client=None
+                    self.prefs.pop('token',None)
+                    self.save_prefs()
+                    self.connection.config(text='●  Chưa kết nối',fg=MUTED)
+                    self.profile.config(text='Kết nối server')
+                    self.name=''
+                    self.room_list.delete(0,'end')
+                    self.online.config(text='0 online')
+                    self.reset_board()
+                    self.toast(msg)
+                    note_text = 'Đã ngắt kết nối. Bạn có 60 giây để đăng nhập lại ván cờ.' if was_playing else msg
+                    self.root.after(150, lambda m=note_text: self.login_dialog(note=m))
                 elif kind=='ERROR':
                     self.pending_bot=False
                     self.toast(event['message'])
-                elif kind=='RECONNECTING':
-                    self.connection.config(text='●  Đang kết nối lại…',fg=GOLD)
-                    self.toast(f'Mất mạng · đang khôi phục phiên · còn {event["remaining"]} giây.')
                 elif kind=='LOBBY':
                     self.online.config(text=str(event['online'])+' online')
                     old=self.room_list.curselection()
@@ -892,7 +915,7 @@ class ChessApp:
 
     def close(self):
         if self.state and self.state['status']=='playing' and self.state['role']>=0:
-            if not messagebox.askyesno('Đóng Pixel Chess','Đóng ứng dụng? Phiên được giữ tối đa 60 giây nếu server vẫn chạy.',parent=self.root):
+            if not messagebox.askyesno('Đóng Pixel Chess','Bạn có muốn đóng Pixel Chess? Bạn có 60 giây để mở lại ứng dụng và tiếp tục ván đấu.',parent=self.root):
                 return
         self.closing=True
         if self.bot:

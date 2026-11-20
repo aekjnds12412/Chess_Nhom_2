@@ -1,0 +1,14 @@
+import fs from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+const base='C:/Program Files/WindowsApps/OpenAI.CodexPrimaryRuntime.v26-1118-904-0_26.1118.904.0_x64__3k8sg7r9htsxt/dependencies/node/node_modules';
+const {Presentation,PresentationFile}=await import(pathToFileURL(base+'/@oai/artifact-tool/dist/artifact_tool.mjs').href);
+const p=Presentation.create({slideSize:{width:1280,height:720}});
+const s=p.slides.add();s.background.fill='#101B15';
+const a=s.shapes.add({geometry:'textbox',position:{left:72,top:80,width:1100,height:100},fill:'none',line:{fill:'none',width:0}});
+a.text='Cờ vua trực tuyến đa luồng';
+a.text.style={fontFamily:'Arial',fontSize:'36pt',color:'#F1F3E9',bold:true};
+s.speakerNotes.text='Nguyễn Trọng Trình demo 3 phút.';
+const png=await p.export({slide:s,format:'png',scale:1});
+await fs.writeFile('presentation/.build/probe.png',new Uint8Array(await png.arrayBuffer()));
+await (await PresentationFile.exportPptx(p)).save('presentation/.build/probe.pptx');
+console.log('Probe render and export OK');

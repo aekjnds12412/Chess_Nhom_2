@@ -1,140 +1,146 @@
-# Pixel Chess — Cờ vua kết nối
+# ♟️ PIXEL CHESS — CỜ VUA TRỰC TUYẾN ĐA LUỒNG (TCP & UDP)
 
-Ứng dụng desktop Python cho đề tài **Cờ vua trực tuyến đa luồng kết hợp TCP & UDP**. Giao diện tiếng Việt, dùng 12 quân pixel được tách trực tiếp từ ảnh bạn cung cấp trong `assets/original.png`.
+> **Đồ án môn Lập trình Mạng (Network Programming) — Trường ĐH Giao thông vận tải TP.HCM (UTH)**  
+> **Sinh viên thực hiện:** Nguyễn Trọng Trình
 
-Làm việc nhóm: xem [CONTRIBUTING.md](CONTRIBUTING.md) về clone, chia nhánh, phân công 6 thành viên và gửi pull request. Mẫu issue/PR và cấu hình GitHub Actions nằm trong `.github/`.
+Ứng dụng cờ vua trực tuyến nhiều người chơi (Multiplayer Online Chess) viết bằng **Python & Tkinter**, kết hợp kiến trúc mạng đa luồng giữa **TCP (bảo đảm toàn vẹn dữ liệu)** và **UDP (tốc độ cao, độ trễ thấp)**. Giao diện Pixel Art cổ điển, hỗ trợ tiếng Việt đầy đủ.
 
-## Chạy ngay trên Windows
+---
 
-- **`Play-Demo.cmd`**: mở ván luyện tập với PixelBot, tự tạo tài khoản khách và server cục bộ.
-- **`Run.cmd`**: mở giao diện đăng nhập, tạo tài khoản hoặc chọn **Chơi thử ngay với máy**.
-- **`Server.cmd`**: chạy server riêng; giữ cửa sổ này mở khi chơi LAN hoặc thử kết nối lại.
-- **`Test.cmd`**: chạy bộ kiểm thử mạng và luật cờ.
+## 🚀 HƯỚNG DẪN CHẠY NHANH (QUICK START)
 
-Các launcher nhận thư mục hiện tại làm thư mục dự án. Trên máy đang phát triển, launcher tự nhận Python runtime có sẵn của Codex. Trên máy khác, cài Python **3.10 trở lên** từ python.org (bật Tcl/Tk và Add Python to PATH), rồi chạy:
+Bạn có thể chạy thử nghiệm ngay lập tức trên Windows bằng các file kịch bản `.cmd` có sẵn:
+
+### Cách 1: Chơi thử ngay một mình với máy (PixelBot)
+* Mở **`Run.cmd`** $\rightarrow$ bấm nút **`Chơi thử ngay với máy`** (hoặc chạy **`tools/Play-Demo.cmd`**).
+* Ứng dụng sẽ tự khởi động Server ngầm, tự tạo tài khoản khách và mở bàn cờ đấu ngay với PixelBot.
+
+---
+
+### Cách 2: Chạy Demo 2 người chơi trên cùng 1 máy tính (Khuyên dùng khi báo cáo)
+Chỉ mất **3 bước đơn giản**:
+1. **Bước 1 — Mở Server:** Double-click file **`Server.cmd`** (cửa sổ đen hiện thông báo `Pixel Chess TCP 0.0.0.0:8765 | UDP 9999` -> thu nhỏ cửa sổ xuống taskbar, giữ chạy ngầm).
+2. **Bước 2 — Mở Người chơi 1:** Double-click file **`Run.cmd`**, chọn **Tạo tài khoản mới** (vd: `alice` / `1234`), bấm **Đăng nhập**, sau đó bấm **Tạo phòng** (chọn cờ trắng).
+3. **Bước 3 — Mở Người chơi 2:** Double-click tiếp file **`Run.cmd`** (mở cửa sổ thứ hai), tạo tài khoản (vd: `bob` / `1234`), bấm **Đăng nhập**, nhìn vào Sảnh chờ sẽ thấy bàn cờ của `alice` -> bấm **Vào đấu**.
+   *(Bàn cờ bắt đầu ngay lập tức, 2 người chơi có thể đi quân, chat và thả icon qua lại).*
+4. **Thử nghiệm Reconnect trong 60 giây:** Ở cửa sổ `alice`, bấm vào tên góc trên phải -> bấm nút duy nhất **`Rời ván & Đăng xuất`**:
+   * Cửa sổ Alice tự động bật ngay màn hình Đăng nhập kèm thông báo: *"Đã ngắt kết nối. Bạn có 60 giây để đăng nhập lại ván cờ."*
+   * Cửa sổ Bob lập tức hiển thị thẻ người chơi: `Trắng · Mất kết nối (Chờ 60s)`.
+   * Ở cửa sổ Alice: Tên và mật khẩu đã sẵn sàng, chỉ cần bấm **Đăng nhập** lại $\rightarrow$ Lập tức quay lại đúng bàn cờ đang chơi dở!
+   * *(Nếu để quá 60 giây không đăng nhập lại: Server sẽ tự động xử thua Alice do "Mất kết nối quá 60 giây" và Bob thắng).*
+
+---
+
+### Cách 3: Chơi giữa 2 máy tính khác nhau qua mạng LAN / Wi-Fi
+1. **Máy 1 (Máy chủ):** Double-click file **`Server.cmd`**. Cho phép Tường lửa Windows (Firewall) nếu có hỏi.
+2. **Máy 2 (Máy khách):** Mở **`Run.cmd`** -> tại hộp thoại đăng nhập, bấm nút **`Tìm server LAN`**. 
+   * Hệ thống sẽ tự động quét UDP Broadcast và điền IP của Máy 1 vào ô địa chỉ.
+   * *(Nếu router Wi-Fi chặn Broadcast, chỉ cần gõ thủ công `IP_CUA_MAY_1:8765`).*
+3. Cả 2 máy đăng nhập tài khoản và vào thi đấu bình thường.
+4. **Người thứ 3 vào xem:** Bấm nút **Vào xem** (Spectator) để theo dõi trực tiếp bàn cờ mà không được can thiệp nước đi.
+
+---
+
+## 🛠️ CÀI ĐẶT THỦ CÔNG (Dành cho máy mới chưa có môi trường)
+
+Yêu cầu máy đã cài **Python 3.10 trở lên** (tích chọn *Add Python to PATH* khi cài đặt):
 
 ```powershell
-python -m pip install -r requirements.txt
+# 1. Cài đặt các thư viện cần thiết (Pillow xử lý ảnh đồ họa)
+pip install -r requirements.txt
+
+# 2. Khởi động ứng dụng (hoặc app.py --server để chạy máy chủ)
 python app.py
 ```
+*(Ghi chú: Thư viện luật cờ vua chuẩn quốc tế `python-chess` đã được tích hợp sẵn trong thư mục `vendor/`, không cần tải thêm).*
 
-Thư viện luật cờ `chess==1.11.2` đã được kèm trong `vendor/`, nên không cần tải lại thư viện này để chạy bản được bàn giao. Pillow được dùng để hiển thị sprite. GUI cần màn hình tối thiểu khoảng 1100 × 760.
+---
 
-## Chơi hai máy trong LAN
+## 🌟 ĐẶC TÍNH KỸ THUẬT NỔI BẬT
 
-1. Máy chủ mở `Server.cmd` trước. Mặc định lắng nghe **TCP 8765** và **UDP 9999** trên `0.0.0.0`.
-2. Các máy cùng mạng mở `Run.cmd`, chọn **Tìm server LAN**. Có thể nhập trực tiếp `IP_MAY_CHU:8765` nếu broadcast bị router chặn. Nếu tìm được nhiều server, ô thông báo liệt kê địa chỉ để chọn bằng cách nhập vào trường server.
-3. Mỗi kỳ thủ tạo tài khoản riêng trên server rồi đăng nhập.
-4. Người thứ nhất **Tạo phòng**, người thứ hai chọn phòng và **Vào đấu**. Với phòng riêng, gửi mã 6 ký tự cho người kia để **Nhập mã phòng**.
-5. Những máy còn lại chọn **Vào xem** để theo dõi cùng trạng thái bàn cờ. Có thể vào xem phòng riêng bằng mã.
-6. Có thể chọn **Ghép trận ngẫu nhiên**: hai người cùng mức thời gian sẽ được ghép vào một phòng mới.
+| Tính năng | Giao thức | Cổng (Port) | Chi tiết triển khai |
+| :--- | :---: | :---: | :--- |
+| **Đăng nhập / Đăng ký** | **TCP** | `8765` | Header 4-byte framing độ dài, bảo mật băm mật khẩu PBKDF2-HMAC-SHA256 (120.000 vòng + Salt 16 byte). |
+| **Nước cờ & Đồng bộ FEN** | **TCP** | `8765` | Server-Authoritative: Server độc quyền kiểm tra luật cờ FIDE, broadcast FEN chuẩn cho 2 bên. |
+| **Khung chat chữ** | **TCP** | `8765` | Đảm bảo tin nhắn hiển thị đúng thứ tự, không bị thất lạc chữ. |
+| **Dò tìm Server mạng LAN** | **UDP** | `9999` | Client gửi gói Broadcast `255.255.255.255:9999`, Server phản hồi IP tự động. |
+| **Đồng hồ đếm ngược** | **UDP + TCP** | `UDP: 9999`<br>`TCP: 8765` | **Kết hợp thông minh**: UDP phát nhịp 5Hz (0.2s/lần) cho kim giây hiển thị mượt mà; TCP gửi chốt chặn mỗi 2s để chống lệch giờ và dự phòng nếu mạng rớt gói UDP. |
+| **Thả biểu cảm Emoji** | **UDP** | `9999` | Bắn icon tức thời (`👍`, `🔥`, `👏`, `🤔`), có rate-limit chống spam. |
+| **Khôi phục phiên (Reconnect 60s)** | **TCP** | `8765` | **Tự động hiện màn hình đăng nhập**: Khi mất kết nối hoặc đóng app, giao diện tự động bật ngay màn hình Đăng nhập. Người chơi có **60 giây** để đăng nhập lại bằng tài khoản của mình và tiếp tục ván đấu (giữ nguyên thế cờ FEN và thời gian đồng hồ). Quá 60s Server tự động xử thua. |
 
-Nếu Windows hỏi quyền tường lửa khi chạy server, người vận hành cần cho phép kết nối trong mạng riêng. UDP broadcast thường chỉ đi trong cùng subnet. Với mạng Internet cần địa chỉ server truy cập được và cấu hình định tuyến các cổng tương ứng; tính năng tự dò không xuyên qua Internet/NAT.
+---
 
-Tự khởi động server: khi kết nối `127.0.0.1` mà chưa có server, ứng dụng sẽ chạy server nhúng. **Đóng ứng dụng đang giữ server nhúng sẽ đóng server đó.** Dùng `Server.cmd` riêng cho buổi demo nhiều máy và demo khôi phục phiên.
+## 🎮 THAO TÁC ĐIỀU KHIỂN TRONG TRẬN ĐẤU
 
-## Điều khiển
+- **Đi quân:** Bấm vào quân cờ rồi bấm ô đích, hoặc nhấn giữ và kéo thả. Các ô đi hợp lệ sẽ có dấu chấm tròn màu xám gợi ý.
+- **Nhập thành:** Kéo Vua đi ngang 2 ô; hệ thống tự nhảy Xe theo đúng luật.
+- **Bắt Tốt qua đường (En Passant) & Phong cấp:** Tự động nhận diện; khi Tốt chạm hàng cuối sẽ hiện bảng chọn Hậu / Xe / Tượng / Mã.
+- **Lật bàn cờ:** Bấm nút **Lật bàn** hoặc nhấn phím tắt `Ctrl + F`.
+- **Xin hòa & Đầu hàng:** Bấm **Hòa** (đối thủ bấm Hòa để chấp thuận), hoặc bấm **Đầu hàng** để xử thua ngay.
+- **Xuất biên bản ván cờ:** Bấm **`PGN ↓`** để tải về file PGN chuẩn thi đấu quốc tế.
+- **Xem lại lịch sử:** Bấm nút **`Lịch sử ván đấu`** để xem 30 ván gần nhất lưu trong cơ sở dữ liệu.
 
-- Bấm quân rồi bấm ô đích, hoặc kéo thả. Các ô có dấu chấm/vòng tròn là nước đi hợp lệ.
-- Nhập thành bằng cách đưa vua đi hai ô; bắt tốt qua đường thực hiện như một nước tốt bình thường.
-- Khi tốt đến hàng cuối, chọn Hậu/Xe/Tượng/Mã trong hộp phong cấp.
-- **Lật bàn** hoặc `Ctrl+F`; `Esc` bỏ chọn quân.
-- **Hòa** gửi đề nghị; đối thủ bấm **Hòa** để đồng ý. Nước đi tiếp theo hủy đề nghị đang chờ.
-- **Yêu cầu hòa theo luật** áp dụng lặp thế ba lần/luật 50 nước khi đến lượt và đủ điều kiện, gồm nước dự định mà thư viện xác định có thể yêu cầu hòa. Server tự xử lý hòa bắt buộc, chiếu hết, hết nước đi và thiếu quân.
-- **Đầu hàng** hoặc rời phòng đang chơi sẽ kết thúc ván với kết quả thua.
-- Chat phòng qua TCP; bốn biểu cảm nhanh qua UDP.
-- **PGN ↓** xuất ván hiện tại. **Lịch sử & ELO** xem tối đa 30 ván gần nhất và tải lại PGN đã lưu.
+---
 
-### Đồng hồ
+## 🔍 TIỆN ÍCH XEM CƠ SỞ DỮ LIỆU (DATABASE VIEWER)
 
-Hỗ trợ `3+0`, `5+0`, `10+5` (phút ban đầu + giây cộng sau mỗi nước đi). Chỉ server quyết định thời gian còn lại và kết quả hết giờ. Client nội suy để hiển thị mượt; nhận cập nhật UDP khoảng 5 lần/giây và TCP dự phòng mỗi 2 giây. Khi hết giờ, nếu đối phương không đủ vật chất chiếu hết theo kiểm tra của thư viện thì kết quả là hòa.
+Dự án có sẵn công cụ xem nhanh Database mà không cần cài phần mềm SQLite bên ngoài:
+* Double-click file **`tools/Xem_Database.cmd`**.
+* Terminal sẽ hiển thị trực quan:
+  1. **Bảng Users:** Danh sách tài khoản đã đăng ký, chuỗi Hash bảo mật PBKDF2 và Salt.
+  2. **Bảng Games:** Lịch sử các ván cờ (Tên người chơi, kết quả `1-0`, `0-1`, `1/2-1/2`, lý do kết thúc, thời gian thi đấu).
 
-### Khôi phục kết nối
+---
 
-Client tự thử kết nối lại khi socket bị đứt; server giữ phiên **60 giây tính từ lúc phát hiện ngắt kết nối**. Heartbeat mỗi 3 giây và ngắt kết nối không phản hồi sau khoảng 12–15 giây. Đồng hồ **vẫn chạy** lúc mất mạng: có thể hết giờ trước khi hết hạn phiên.
+## 📂 CẤU TRÚC THƯ MỤC DỰ ÁN
 
-Token được lưu tại `.local/client.json` để nút **Khôi phục phiên trước** có thể nối lại sau khi mở lại ứng dụng. Không lưu mật khẩu trong file này. Mỗi thư mục chạy giữ một token cuối; chạy hai cửa sổ bằng tài khoản khác nhau vẫn chơi được nhưng token lưu trên đĩa sẽ là phiên đăng nhập sau cùng. Trong bộ nhớ, hai cửa sổ vẫn giữ token độc lập.
-
-Để demo mà không tắt Wi-Fi: bấm tên tài khoản ở góc trên phải → **Thử ngắt mạng & kết nối lại**. Đây là đóng socket thật, sau đó client tự bắt tay `RESUME` và nhận lại FEN, vai trò và đồng hồ. Server cần tiếp tục chạy; trạng thái ván đang chơi nằm trong RAM, không sống qua việc khởi động lại server.
-
-## Kiến trúc
+Thư mục đã được sắp xếp tinh gọn — ở ngoài cùng chỉ giữ lại 2 file chạy chính:
 
 ```text
-Tkinter GUI ── hàng đợi sự kiện ── NetworkClient
-                                  │
-                     TCP 8765     │     UDP 9999
-                length + JSON     │     discovery / clock / emoji
-                                  ▼
-                    GameServer (ThreadPoolExecutor)
-                      ├─ Session + heartbeat + token
-                      ├─ Lobby + matchmaking + private rooms
-                      ├─ Room + python-chess + monotonic clock
-                      └─ SQLite: accounts / ratings / history / PGN
+D:\LTM\Chess\Chess\
+├── Run.cmd                 # 🟢 Kịch bản khởi động Client (Chơi cờ)
+├── Server.cmd              # 🟢 Kịch bản khởi động Server chuyên dụng
+├── app.py                  # Điểm khởi động chính của Python
+├── README.md               # Hướng dẫn sử dụng trực quan
+├── requirements.txt        # Danh sách thư viện Python (Pillow)
+│
+├── chessnet/               # Gói mã nguồn mạng và logic cờ vua
+│   ├── protocol.py         # 4-byte Length-Prefix framing, JSON protocol
+│   ├── server.py           # GameServer đa luồng (TCP 8765 + UDP 9999)
+│   ├── client.py           # NetworkClient nền, luồng nhận sự kiện
+│   ├── gui.py              # Toàn bộ giao diện Tkinter, Canvas bàn cờ
+│   └── storage.py          # Quản lý SQLite, băm mật khẩu PBKDF2
+│
+├── assets/                 # Hình ảnh sprite quân cờ Pixel Art
+├── data/                   # Cơ sở dữ liệu SQLite (pixel_chess.db)
+├── docs/                   # Tài liệu đồ án, giấy phép và kịch bản
+├── docker/                 # Cấu hình container Dockerfile & compose
+├── tests/                  # Bộ kiểm thử mạng tự động (test_network.py)
+├── tools/                  # Các công cụ phụ (Play-Demo, Test, Xem_Database)
+└── vendor/                 # Thư viện ngoài đính kèm sẵn (python-chess 1.11.2)
 ```
 
-| File | Trách nhiệm |
-|---|---|
-| `app.py` | Điểm khởi động GUI, server hoặc tests; nạp thư viện vendor |
-| `chessnet/protocol.py` | Length-prefix framing, đọc đủ byte, kiểm tra frame |
-| `chessnet/server.py` | Server TCP đa luồng, UDP, phiên và phòng, đồng hồ |
-| `chessnet/storage.py` | SQLite, băm mật khẩu PBKDF2, lịch sử/ELO |
-| `chessnet/client.py` | Luồng mạng, reconnect, UDP discovery, PixelBot |
-| `chessnet/gui.py` | Giao diện Tkinter, bàn cờ Canvas, sprite và hộp thoại |
-| `tools/extract_assets.py` | Tách 12 quân, loại nền đen, giữ nguyên pixel gốc |
-| `tests/test_network.py` | Kiểm thử framing, luật và tích hợp TCP/UDP thực |
+---
 
-Server giới hạn 128 kết nối đồng thời bằng semaphore và `ThreadPoolExecutor`, một tác vụ đọc cho mỗi client. Dữ liệu phòng được bảo vệ bằng `RLock`; mỗi kết nối có khóa gửi để không đan xen frame. Mạng chạy ngoài luồng GUI; mọi cập nhật widget đều qua hàng đợi và `after()` của Tkinter.
+## 🧪 CHẠY KIỂM THỬ TỰ ĐỘNG (UNIT TESTS)
 
-TCP frame: **`[4 byte unsigned big-endian: N][N byte UTF-8 JSON]`**, giới hạn 64 KiB mỗi frame. `receive()` đọc đủ byte nên xử lý được dính gói, phân mảnh và Unicode. Sai định dạng hoặc vượt giới hạn sẽ bị từ chối.
-
-Ví dụ thông điệp:
-
-```json
-{"type":"LOGIN","name":"Alice","password":"demo1234","register":true}
-{"type":"CREATE","title":"Bàn của Alice","control":"10+5","private":false}
-{"type":"JOIN","id":"A1B2C3"}
-{"type":"MOVE","from":"e2","to":"e4","promotion":""}
-{"type":"SPECTATE","id":"A1B2C3"}
-{"type":"RESUME","token":"<token nhận từ WELCOME>"}
-```
-
-Các loại khác: `LOBBY`, `MATCH`, `CANCEL_MATCH`, `LEAVE`, `PING`, `PONG`, `CHAT`, `DRAW`, `CLAIM_DRAW`, `RESIGN`, `HISTORY`, `PGN`. Server phát `STATE` gồm FEN, SAN/UCI, danh sách nước hợp lệ, vai trò, người chơi, đồng hồ và kết quả. Client không gửi FEN hay thời gian để ghi đè server.
-
-UDP: `DISCOVER` kèm `app: PIXEL_CHESS_V1` gửi broadcast cổng 9999; server trả địa chỉ nguồn cùng cổng TCP. Sau đăng nhập, `REGISTER` gắn endpoint UDP với token và IP của kết nối TCP. `CLOCK` có mã phòng/revision; `EMOJI` chỉ nhận bốn giá trị cho phép và có giới hạn tốc độ. Chat tối đa 280 ký tự, giữ 60 tin gần nhất.
-
-## Dữ liệu và phạm vi
-
-- Cơ sở dữ liệu `data/chess.db` được tạo tự động. Mật khẩu dùng PBKDF2-HMAC-SHA256, salt ngẫu nhiên riêng và so sánh constant-time.
-- ELO khởi tạo 1200, hệ số K=24, cập nhật hai người khi kết thúc ván. Ván có tên bắt đầu `Luyện tập · ` không tính ELO. Đây là quy ước cho bản bài tập, chưa phải hệ thống xếp hạng chống lạm dụng.
-- PixelBot là minimax sâu 2 nửa nước, có chấm vật chất/vị trí đơn giản. Nó tham gia qua một TCP client thật và chỉ nhằm luyện tập/demo; không phải engine chuyên nghiệp.
-- Trạng thái phiên, phòng, chat và ghép trận nằm trong RAM. Tài khoản, kết quả, PGN và ELO nằm trong SQLite.
-- Chọn **chat + emoji** trong phần tương tác mở rộng; chưa có voice chat. Chưa có đăng nhập TLS, reset mật khẩu, lưu ván đang chơi qua restart hoặc dịch vụ triển khai Internet được quản trị. Phù hợp chạy LAN/demo học phần.
-- Bộ asset là ảnh người dùng cung cấp; không suy đoán giấy phép phân phối ảnh. Xem `THIRD_PARTY.md` về thư viện luật cờ và giấy phép GPL.
-
-## Kiểm thử
-
+Để chạy kiểm tra toàn bộ hoạt động của socket mạng TCP, UDP, xử lý framing và luật cờ:
+* Double-click file **`tools/Test.cmd`**, hoặc chạy lệnh:
 ```powershell
 python app.py --test
 ```
+*Kết quả:* **14/14 bài kiểm thử đạt chuẩn (OK)** chạy trên môi trường Loopback Socket thực tế.
 
-14 bài kiểm thử chạy socket TCP/UDP thực trên `127.0.0.1` với cổng và SQLite tạm. Bao phủ phân mảnh/dính gói, giới hạn frame, đăng nhập/băm mật khẩu, nước đi sai lượt, spectator chỉ xem, chiếu hết/PGN/ELO, nhập thành/bắt tốt qua đường/phong cấp Mã, reconnect còn hạn/hết hạn, hết giờ/cộng giờ, UDP discovery/clock/emoji, nhiều phòng/ghép trận, chat/hòa và client tự reconnect. Chạy trong môi trường cho phép socket loopback.
+---
 
-### Demo cho nhóm 6 người
+## ❓ CÁC VẤN ĐỀ THƯỜNG GẶP (TROUBLESHOOTING)
 
-1. Một máy chạy server riêng; hai máy đăng nhập, ghép trận và chơi vài nước.
-2. Máy thứ tư vào xem, gửi chat và emoji; xác minh bàn cờ giống nhau.
-3. Máy thứ năm/sáu tạo bàn khác; minh họa hai phòng không ảnh hưởng nhau.
-4. Một kỳ thủ thử ngắt socket rồi reconnect; kiểm tra giữ FEN và thời gian tiếp tục giảm.
-5. Mô phỏng ngắt hơn 60 giây để thấy xử thua; kiểm tra lịch sử và ELO.
-
-## Docker (server)
-
-```powershell
-docker compose up --build
-```
-
-GUI chạy ở máy Windows, kết nối `IP_MAY_CHAY_DOCKER:8765`. Dữ liệu giữ trong volume `chess-data`. UDP discovery broadcast qua Docker bridge/Docker Desktop có thể không được chuyển tiếp; nhập IP thủ công khi cần. Dockerfile chỉ khởi động server nên không cần thư viện đồ họa. Cấu hình Docker được cung cấp nhưng chưa chạy kiểm thử Docker trên máy này.
-
-## Nguồn tham khảo
-
-Luật cờ, FEN, SAN và PGN sử dụng [tài liệu chính thức python-chess](https://python-chess.readthedocs.io/en/latest/). Phần TCP/UDP, quản lý phòng, phiên, lưu trữ, bot và giao diện nằm trong mã nguồn dự án.
+1. **Lỗi "Đã ngắt kết nối với máy chủ" ngay khi vừa đăng nhập:**
+   * *Nguyên nhân:* Cổng `8765` đang bị một tiến trình khác (như Node.js, Web Server) chiếm giữ.
+   * *Khắc phục:* Mở PowerShell kiểm tra và tắt ứng dụng trùng cổng:
+     ```powershell
+     Get-Process -Id (Get-NetTCPConnection -LocalPort 8765).OwningProcess | Stop-Process -Force
+     ```
+2. **Không tìm thấy server khi bấm "Tìm server LAN":**
+   * *Nguyên nhân:* Mạng Wi-Fi chặn gói tin UDP Broadcast giữa các thiết bị.
+   * *Khắc phục:* Gõ trực tiếp địa chỉ IP nội bộ của máy chủ vào ô `Địa chỉ server` (Ví dụ: `192.168.1.15:8765`).

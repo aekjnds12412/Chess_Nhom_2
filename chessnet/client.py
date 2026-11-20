@@ -49,8 +49,8 @@ class NetworkClient:
 
     def connect(self, host, port, name='', password='', register=False, token=None):
         self.host,self.port=host,int(port)
-        self.token=token
-        self.credentials={'type':'RESUME','token':token} if token else {'type':'LOGIN','name':name,'password':password,'register':register}
+        self.token=None
+        self.credentials={'type':'LOGIN','name':name,'password':password,'register':register}
         self.thread=threading.Thread(target=self.run,daemon=True)
         self.thread.start()
 
@@ -58,52 +58,46 @@ class NetworkClient:
         self.callback(dict(type=kind,**kwargs))
 
     def run(self):
-        first=True
-        deadline=None
-        while not self.stop_event.is_set():
-            sock=None
-            try:
-                sock=socket.create_connection((self.host,self.port),timeout=3)
-                sock.settimeout(8)
-                sock.sendall(encode(self.credentials if first else {'type':'RESUME','token':self.token}))
-                welcome=receive(sock)
-                if welcome['type']!='WELCOME':
-                    self.emit('AUTH_ERROR',message=welcome.get('message','Không thể đăng nhập.'))
-                    break
-                self.sock=sock
-                self.connected=True
-                self.token=welcome['token']
-                self.peer_ip=sock.getpeername()[0]
-                self.udp_port=welcome['udp_port']
-                self.setup_udp()
-                self.callback(welcome)
-                first=False
-                deadline=None
-                heartbeat=threading.Thread(target=self.heartbeat,args=(sock,),daemon=True)
-                heartbeat.start()
-                while not self.stop_event.is_set():
-                    self.callback(receive(sock))
-            except (OSError,EOFError,ValueError,KeyError) as exc:
-                if self.stop_event.is_set():
-                    break
-                if first:
-                    self.emit('AUTH_ERROR',message='Không kết nối được server: '+str(exc))
-                    break
-                deadline=deadline or time.monotonic()+58
-                if time.monotonic()>deadline:
-                    self.emit('AUTH_ERROR',message='Đã hết thời gian kết nối lại. Hãy đăng nhập lại.')
-                    break
-                self.emit('RECONNECTING',remaining=max(0,int(deadline-time.monotonic())))
-            finally:
-                self.connected=False
-                if self.sock is sock:
-                    self.sock=None
-                if sock:
+        sock=None
+        try:
+            sock=socket.create_connection((self.host,self.port),timeout=3)
+            sock.settimeout(8)
+            sock.sendall(encode(self.credentials))
+            welcome=receive(sock)
+            if welcome['type']!='WELCOME':
+                self.emit('AUTH_ERROR',message=welcome.get('message','Không thể đăng nhập.'))
+                return
+            self.sock=sock
+            self.connected=True
+            self.token=welcome['token']
+            self.peer_ip=sock.getpeername()[0]
+            self.udp_port=welcome['udp_port']
+            self.setup_udp()
+            self.callback(welcome)
+            heartbeat=threading.Thread(target=self.heartbeat,args=(sock,),daemon=True)
+            heartbeat.start()
+            while not self.stop_event.is_set():
+                self.callback(receive(sock))
+        except (OSError,EOFError,ValueError,KeyError) as exc:
+            if not self.stop_event.is_set():
+                if not self.connected:
+                    self.emit('AUTH_ERROR', message='Không thể kết nối đến máy chủ: ' + str(exc))
+                else:
+                    self.emit('AUTH_ERROR', message='Đã ngắt kết nối với máy chủ.')
+        finally:
+            self.connected=False
+            if self.sock is sock:
+                self.sock=None
+            if sock:
+                try:
                     sock.close()
-            if self.stop_event.wait(1):
-                break
-        if self.udp:
-            self.udp.close()
+                except OSError:
+                    pass
+            if self.udp:
+                try:
+                    self.udp.close()
+                except OSError:
+                    pass
 
     def setup_udp(self):
         if not self.udp:

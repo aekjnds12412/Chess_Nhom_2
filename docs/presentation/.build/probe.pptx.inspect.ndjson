@@ -1,0 +1,11 @@
+{"kind":"deck","id":"pr/0isxgs","name":"Deck"}
+{"kind":"layout","id":"ly/jmtwnu5s","editable":false,"name":"Master","type":"master"}
+{"kind":"layout","id":"ly/43q9ov69","editable":false,"name":"Title Slide","type":"title","placeholders":[{"name":"title","type":"title"},{"name":"subtitle","type":"subtitle"}]}
+{"kind":"layout","id":"ly/8vqxc7ql","editable":false,"name":"Section Header","type":"sectionHeader","placeholders":[{"name":"title","type":"title"}]}
+{"kind":"layout","id":"ly/f6horuh0","editable":false,"name":"Title and Body","type":"tx","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"}]}
+{"kind":"layout","id":"ly/ozapk7mp","editable":false,"name":"Title and Two Column","type":"twoColTx","placeholders":[{"name":"title","type":"title"},{"name":"Left column","type":"body"},{"name":"Right column","type":"body"}]}
+{"kind":"layout","id":"ly/hs7ulgf6","editable":false,"name":"Title and One Column","type":"tx","placeholders":[{"name":"title","type":"title"},{"name":"body","type":"body"}]}
+{"kind":"layout","id":"ly/h4zml0n6","editable":false,"name":"Blank","type":"blank"}
+{"kind":"slide","id":"sl/dmugs8","slideIndex":0,"layout":{"id":"ly/h4zml0n6","name":"Blank"},"title":"Cờ vua trực tuyến đa luồng","textShapes":1,"backgroundColor":"rgba(16,27,21,1)"}
+{"kind":"textbox","id":"sh/m1wnypo7","slideIndex":0,"position":{"left":72,"top":80,"width":1100,"height":100},"text":"Cờ vua trực tuyến đa luồng","geometry":"rect","lineWidth":0,"style":{"fontSize":48,"typeface":"Arial","color":"#F1F3E9","bold":true,"alignment":"left"}}
+{"kind":"notes","id":"nt/dmugs8","slideIndex":0,"text":"Nguyễn Trọng Trình demo 3 phút."}
