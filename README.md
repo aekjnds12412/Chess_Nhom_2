@@ -1,7 +1,8 @@
 # ♟️ PIXEL CHESS — CỜ VUA TRỰC TUYẾN ĐA LUỒNG (TCP & UDP)
 
 > **Đồ án môn Lập trình Mạng (Network Programming) — Trường ĐH Giao thông vận tải TP.HCM (UTH)**  
-> **Sinh viên thực hiện:** Nguyễn Trọng Trình
+> **Sinh viên thực hiện:** Nguyễn Trọng Trình  
+> **Repository:** [https://github.com/aekjnds12412/Chess_Nhom_2](https://github.com/aekjnds12412/Chess_Nhom_2)
 
 Ứng dụng cờ vua trực tuyến nhiều người chơi (Multiplayer Online Chess) viết bằng **Python & Tkinter**, kết hợp kiến trúc mạng đa luồng giữa **TCP (bảo đảm toàn vẹn dữ liệu)** và **UDP (tốc độ cao, độ trễ thấp)**. Giao diện Pixel Art cổ điển, hỗ trợ tiếng Việt đầy đủ.
 
@@ -9,35 +10,36 @@
 
 ## 🚀 HƯỚNG DẪN CHẠY NHANH (QUICK START)
 
-Bạn có thể chạy thử nghiệm ngay lập tức trên Windows bằng các file kịch bản `.cmd` có sẵn:
+Bạn có thể chạy thử nghiệm ngay lập tức trên Windows bằng các file kịch bản `.cmd` có sẵn (chạy tại thư mục `D:\LTM\Chess\Chess` hoặc ngay ngoài thư mục `D:\LTM`):
 
 ### Cách 1: Chơi thử ngay một mình với máy (PixelBot)
 * Mở **`Run.cmd`** $\rightarrow$ bấm nút **`Chơi thử ngay với máy`** (hoặc chạy **`tools/Play-Demo.cmd`**).
-* Ứng dụng sẽ tự khởi động Server ngầm, tự tạo tài khoản khách và mở bàn cờ đấu ngay với PixelBot.
+* Ứng dụng sẽ tự khởi động Server ngầm, tự tạo tài khoản khách và mở bàn cờ đấu ngay với PixelBot (thuật toán Minimax).
 
 ---
 
 ### Cách 2: Chạy Demo 2 người chơi trên cùng 1 máy tính (Khuyên dùng khi báo cáo)
 Chỉ mất **3 bước đơn giản**:
-1. **Bước 1 — Mở Server:** Double-click file **`Server.cmd`** (cửa sổ đen hiện thông báo `Pixel Chess TCP 0.0.0.0:8765 | UDP 9999` -> thu nhỏ cửa sổ xuống taskbar, giữ chạy ngầm).
-2. **Bước 2 — Mở Người chơi 1:** Double-click file **`Run.cmd`**, chọn **Tạo tài khoản mới** (vd: `alice` / `1234`), bấm **Đăng nhập**, sau đó bấm **Tạo phòng** (chọn cờ trắng).
-3. **Bước 3 — Mở Người chơi 2:** Double-click tiếp file **`Run.cmd`** (mở cửa sổ thứ hai), tạo tài khoản (vd: `bob` / `1234`), bấm **Đăng nhập**, nhìn vào Sảnh chờ sẽ thấy bàn cờ của `alice` -> bấm **Vào đấu**.
-   *(Bàn cờ bắt đầu ngay lập tức, 2 người chơi có thể đi quân, chat và thả icon qua lại).*
-4. **Thử nghiệm Reconnect trong 60 giây:** Ở cửa sổ `alice`, bấm vào tên góc trên phải -> bấm nút duy nhất **`Rời ván & Đăng xuất`**:
-   * Cửa sổ Alice tự động bật ngay màn hình Đăng nhập kèm thông báo: *"Đã ngắt kết nối. Bạn có 60 giây để đăng nhập lại ván cờ."*
-   * Cửa sổ Bob lập tức hiển thị thẻ người chơi: `Trắng · Mất kết nối (Chờ 60s)`.
-   * Ở cửa sổ Alice: Tên và mật khẩu đã sẵn sàng, chỉ cần bấm **Đăng nhập** lại $\rightarrow$ Lập tức quay lại đúng bàn cờ đang chơi dở!
+1. **Bước 1 — Mở Server:** Double-click file **`Server.cmd`** (cửa sổ đen hiện thông báo `Pixel Chess TCP 0.0.0.0:8765 | UDP 9999` $\rightarrow$ thu nhỏ cửa sổ xuống taskbar, giữ chạy ngầm).
+2. **Bước 2 — Mở Người chơi 1:** Double-click file **`Run.cmd`**, chọn **Tạo tài khoản mới** (vd: `alice` / `1234`), bấm **Đăng nhập**, sau đó bấm **Tạo phòng** (chọn cờ trắng, thời gian 5+0).
+3. **Bước 3 — Mở Người chơi 2:** Double-click tiếp file **`Run.cmd`** (mở cửa sổ thứ hai), tạo tài khoản (vd: `bob` / `1234`), bấm **Đăng nhập**, nhìn vào Sảnh chờ sẽ thấy bàn cờ của `alice` $\rightarrow$ bấm **Vào đấu**.
+   *(Bàn cờ bắt đầu ngay lập tức, 2 người chơi có thể đi quân, chat qua TCP và thả icon Emoji qua UDP).*
+4. **Thử nghiệm Reconnect trong 60 giây:** 
+   * Tại cửa sổ `alice`, bấm vào tên tài khoản ở góc trên bên phải $\rightarrow$ xuất hiện hộp thoại *Kết nối của bạn* $\rightarrow$ bấm nút duy nhất: **`Rời ván & Đăng xuất`**.
+   * Cửa sổ Alice tự động ngắt socket và **bật ngay màn hình Đăng nhập** kèm thông báo đếm ngược: *"Đã ngắt kết nối. Bạn có 60 giây để đăng nhập lại ván cờ."*
+   * Cửa sổ Bob lập tức cập nhật thẻ người chơi đối thủ: `Trắng · Mất kết nối (Chờ 60s)`, kim giây đồng hồ Server vẫn tiếp tục đếm.
+   * Ở cửa sổ Alice: Tên và mật khẩu đã được tự động điền sẵn, chỉ cần bấm **Đăng nhập** lại $\rightarrow$ **Ván đấu lập tức được khôi phục nguyên vẹn** (bàn cờ FEN, thời gian và lượt đi giữ nguyên 100%)!
    * *(Nếu để quá 60 giây không đăng nhập lại: Server sẽ tự động xử thua Alice do "Mất kết nối quá 60 giây" và Bob thắng).*
 
 ---
 
 ### Cách 3: Chơi giữa 2 máy tính khác nhau qua mạng LAN / Wi-Fi
 1. **Máy 1 (Máy chủ):** Double-click file **`Server.cmd`**. Cho phép Tường lửa Windows (Firewall) nếu có hỏi.
-2. **Máy 2 (Máy khách):** Mở **`Run.cmd`** -> tại hộp thoại đăng nhập, bấm nút **`Tìm server LAN`**. 
+2. **Máy 2 (Máy khách):** Mở **`Run.cmd`** $\rightarrow$ tại hộp thoại đăng nhập, bấm nút **`⌕ Tìm server LAN`**. 
    * Hệ thống sẽ tự động quét UDP Broadcast và điền IP của Máy 1 vào ô địa chỉ.
    * *(Nếu router Wi-Fi chặn Broadcast, chỉ cần gõ thủ công `IP_CUA_MAY_1:8765`).*
 3. Cả 2 máy đăng nhập tài khoản và vào thi đấu bình thường.
-4. **Người thứ 3 vào xem:** Bấm nút **Vào xem** (Spectator) để theo dõi trực tiếp bàn cờ mà không được can thiệp nước đi.
+4. **Người thứ 3 vào xem:** Bấm nút **Vào xem** (Spectator) để theo dõi trực tiếp bàn cờ mà không can thiệp vào nước đi.
 
 ---
 
@@ -67,6 +69,7 @@ python app.py
 | **Đồng hồ đếm ngược** | **UDP + TCP** | `UDP: 9999`<br>`TCP: 8765` | **Kết hợp thông minh**: UDP phát nhịp 5Hz (0.2s/lần) cho kim giây hiển thị mượt mà; TCP gửi chốt chặn mỗi 2s để chống lệch giờ và dự phòng nếu mạng rớt gói UDP. |
 | **Thả biểu cảm Emoji** | **UDP** | `9999` | Bắn icon tức thời (`👍`, `🔥`, `👏`, `🤔`), có rate-limit chống spam. |
 | **Khôi phục phiên (Reconnect 60s)** | **TCP** | `8765` | **Tự động hiện màn hình đăng nhập**: Khi mất kết nối hoặc đóng app, giao diện tự động bật ngay màn hình Đăng nhập. Người chơi có **60 giây** để đăng nhập lại bằng tài khoản của mình và tiếp tục ván đấu (giữ nguyên thế cờ FEN và thời gian đồng hồ). Quá 60s Server tự động xử thua. |
+| **Lịch sử ván đấu (SQLite)** | **TCP** | `8765` | Lưu toàn bộ lịch sử đấu, thời gian, kết quả và biên bản chuẩn PGN vào file database `data/chess.db` (đã loại bỏ hệ thống điểm ELO để tập trung vào lịch sử trận đấu thuần túy). |
 
 ---
 
@@ -76,9 +79,10 @@ python app.py
 - **Nhập thành:** Kéo Vua đi ngang 2 ô; hệ thống tự nhảy Xe theo đúng luật.
 - **Bắt Tốt qua đường (En Passant) & Phong cấp:** Tự động nhận diện; khi Tốt chạm hàng cuối sẽ hiện bảng chọn Hậu / Xe / Tượng / Mã.
 - **Lật bàn cờ:** Bấm nút **Lật bàn** hoặc nhấn phím tắt `Ctrl + F`.
-- **Xin hòa & Đầu hàng:** Bấm **Hòa** (đối thủ bấm Hòa để chấp thuận), hoặc bấm **Đầu hàng** để xử thua ngay.
+- **Xin hòa & Đầu hàng:** Bấm **Hòa** (đối thủ bấm Hòa để chấp thuận), hoặc bấm **Đầu hàng** để nhận thua ngay.
 - **Xuất biên bản ván cờ:** Bấm **`PGN ↓`** để tải về file PGN chuẩn thi đấu quốc tế.
 - **Xem lại lịch sử:** Bấm nút **`Lịch sử ván đấu`** để xem 30 ván gần nhất lưu trong cơ sở dữ liệu.
+- **Đăng xuất / Thử ngắt kết nối:** Bấm vào tên tài khoản ở góc trên bên phải $\rightarrow$ bấm nút **`Rời ván & Đăng xuất`**.
 
 ---
 
@@ -103,6 +107,7 @@ D:\LTM\Chess\Chess\
 ├── app.py                  # Điểm khởi động chính của Python
 ├── README.md               # Hướng dẫn sử dụng trực quan
 ├── requirements.txt        # Danh sách thư viện Python (Pillow)
+├── .gitignore              # Bộ lọc file không đưa lên Git
 │
 ├── chessnet/               # Gói mã nguồn mạng và logic cờ vua
 │   ├── protocol.py         # 4-byte Length-Prefix framing, JSON protocol
@@ -133,6 +138,22 @@ python app.py --test
 
 ---
 
+## 🌐 HƯỚNG DẪN ĐẨY CODE LÊN GITHUB (GIT WORKFLOW)
+
+Kho lưu trữ GitHub: **`https://github.com/aekjnds12412/Chess_Nhom_2`**
+
+Để đồng bộ code mới nhất lên GitHub:
+```powershell
+# 1. Di chuyển vào thư mục dự án
+cd /d D:\LTM\Chess\Chess
+
+# 2. Đẩy code lên nhánh main
+git push -u origin main
+```
+*(Nếu GitHub báo từ chối do có commit cũ từ trước, thêm cờ ép buộc: `git push -u origin main --force`)*
+
+---
+
 ## ❓ CÁC VẤN ĐỀ THƯỜNG GẶP (TROUBLESHOOTING)
 
 1. **Lỗi "Đã ngắt kết nối với máy chủ" ngay khi vừa đăng nhập:**
@@ -144,3 +165,4 @@ python app.py --test
 2. **Không tìm thấy server khi bấm "Tìm server LAN":**
    * *Nguyên nhân:* Mạng Wi-Fi chặn gói tin UDP Broadcast giữa các thiết bị.
    * *Khắc phục:* Gõ trực tiếp địa chỉ IP nội bộ của máy chủ vào ô `Địa chỉ server` (Ví dụ: `192.168.1.15:8765`).
+
